@@ -1,0 +1,66 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model files {
+  id          Int        @id @default(autoincrement())
+  name        String
+  objectKey   String
+  size        Int
+  mimeType    String
+  deleted     Boolean    @default(false)
+  deleteDate  DateTime?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  fileTags    fileTags[]
+  providers   providers? @relation(fields: [providersId], references: [id])
+  providersId Int?
+  clients     clients?   @relation(fields: [clientId], references: [id])
+  clientId    Int?
+}
+
+model providers {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  default   Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  files     files[]
+}
+
+model tags {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  fileTags  fileTags[]
+}
+
+model fileTags {
+  id        Int      @id @default(autoincrement())
+  fileId    Int
+  tagId     Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  files     files    @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  tags      tags     @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@index([fileId, tagId])
+}
+
+model clients {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  apiKey    String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  files     files[]
+}
